@@ -1,0 +1,90 @@
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import java.io.*;
+
+import org.jsoup.nodes.Node;
+import org.jsoup.select.Elements;
+import org.jsoup.nodes.Attribute;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
+
+
+public class Example1 {
+    static boolean ASK_FOR_FOLDER_LOCATION = false;
+    static boolean ASK_FOR_PROJECT_NAME = false;
+    static boolean ASK_FOR_OVERWRITE = false;
+
+    public static String getPreText(Element element){
+        return element.getElementsByTag("pre").first().wholeText().replace('\n', ' ');
+    }
+
+    public static String childrenNames(Element element){
+        String concl = "";
+        for (Element child : element.children()){
+            concl += child.tagName();
+            if (!child.className().equals("")) concl += ":" + child.className();
+            concl += " ";
+        }
+        return concl;
+    }
+
+    public static void printInfo(Element element){
+        System.out.println("ELEMENT: " + element.id());
+        System.out.println(" Class Name: " + element.className());
+        System.out.println(" Tag Name: " + element.tagName());
+        System.out.println(" Text: " + element.text());
+        //System.out.println(" H3: " + element.getElementsByTag("h3").first().text());
+        System.out.println(" # of Children: " + element.children().size());
+        System.out.println(" Children: " + childrenNames(element));
+    }
+
+
+    public static void printInfo(Elements elements){
+        for (Element element : elements){
+            printInfo(element);
+        }
+    }
+
+
+
+
+    public static void main(String[] args) throws IOException{
+        try {
+
+            char delimiter = '/';
+            Scanner scanner = new Scanner(System.in);
+            String folderLoc = "/Users/kenny/Desktop/Programming/Java/CS2/";
+            String projectName = "Test";
+            String location = folderLoc + projectName + delimiter;
+
+
+
+
+            //Get Document object after parsing the html from given url.
+            Elements links = Jsoup.connect("https://www.cs.rit.edu/~csci142/Labs/04/Doc/allclasses-frame.html").get().select("a[href]");
+            for (Element element: links) {
+                String link = element.attr("href");
+                String className = link.substring(0, link.length()-5);
+                System.out.println(location + className + ".java");
+                PrintWriter writer = new PrintWriter(location + className + ".java", "UTF-8");
+                Document page = Jsoup.connect("https://www.cs.rit.edu/~csci142/Labs/04/Doc/" + link).get();
+
+                Element blocks = page.select("div.details > ul.blockList > li.blockList > ul.blockList > li.blockList").first();
+                //printInfo(blocks);
+                System.out.println(blocks.getElementsByTag("h3").first().text());
+                printInfo(blocks.select("ul.blockList,ul.blockListLast"));
+
+
+
+                writer.close();
+            }
+        } catch (IOException e) {
+            System.out.println("We got an error");
+            e.printStackTrace();
+        }
+
+
+    }
+}
